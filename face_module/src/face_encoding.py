@@ -1,13 +1,15 @@
-print("FILE STARTED")
-
 import os
 import pickle
 import face_recognition
 
-# Project folder
-base_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Dataset and models folder
+# Project folder
+base_path = os.path.dirname(
+    os.path.dirname(os.path.abspath(__file__))
+)
+
+
+# Dataset and models folders
 dataset_path = os.path.join(base_path, "dataset")
 models_path = os.path.join(base_path, "models")
 
@@ -16,6 +18,7 @@ print("Face encoding started...")
 print("Dataset path:", dataset_path)
 
 
+# Store encodings and names
 known_encodings = []
 known_names = []
 
@@ -31,8 +34,11 @@ for person_name in os.listdir(dataset_path):
 
     person_path = os.path.join(dataset_path, person_name)
 
+
+    # Ignore files and process only folders
     if not os.path.isdir(person_path):
         continue
+
 
     print(f"\nProcessing: {person_name}")
 
@@ -45,32 +51,39 @@ for person_name in os.listdir(dataset_path):
         print(f"Reading: {image_name}")
 
 
-        # Load image
-        image = face_recognition.load_image_file(image_path)
+        try:
+
+            # Load image
+            image = face_recognition.load_image_file(image_path)
 
 
-        # Generate face encoding
-        encodings = face_recognition.face_encodings(image)
+            # Generate face encodings
+            encodings = face_recognition.face_encodings(image)
 
 
-        # Check if face was found
-        if encodings:
+            # Check if face was found
+            if encodings:
 
-            known_encodings.append(encodings[0])
-            known_names.append(person_name)
+                known_encodings.append(encodings[0])
+                known_names.append(person_name)
 
-            print(f"Encoded successfully: {person_name}")
+                print(f"Encoded successfully: {person_name}")
 
-        else:
+            else:
 
-            print("No face found!")
+                print(f"No face found in: {image_name}")
+
+
+        except Exception as e:
+
+            print(f"Error processing {image_name}: {e}")
 
 
 # Create models folder if it doesn't exist
 os.makedirs(models_path, exist_ok=True)
 
 
-# Data to save
+# Store data
 data = {
     "encodings": known_encodings,
     "names": known_names
@@ -78,7 +91,11 @@ data = {
 
 
 # Save encodings
-encoding_file = os.path.join(models_path, "encodings.pkl")
+encoding_file = os.path.join(
+    models_path,
+    "encodings.pkl"
+)
+
 
 with open(encoding_file, "wb") as file:
     pickle.dump(data, file)
@@ -86,4 +103,5 @@ with open(encoding_file, "wb") as file:
 
 print("\nFace encoding completed!")
 print("Total encodings:", len(known_encodings))
+print("Total students:", len(set(known_names)))
 print("Saved at:", encoding_file)
